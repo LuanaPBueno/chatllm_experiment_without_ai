@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -43,10 +42,9 @@ async def _generate_title(user_message: str, db: Session, session: ChatSession) 
     Tries OpenRouter first; falls back to first words of the message.
     """
     try:
-        reply, _ = await generate_reply(
-            user_message=f'Generate a very short title (max 6 words) for a chat that starts with this message. Return ONLY the title, no quotes or extra text.\n\nMessage: "{user_message}"',
+        reply, model_name = await generate_reply(
+            user_message=user_message,
             history=[],
-            model=None,
         )
         title = reply.strip().strip('"').strip("'").strip(".")[:60]
         if title:
@@ -119,16 +117,16 @@ async def chat_stream(
 
     is_first_message = session.title == "Novo chat" or not session.title
 
-    # Save user message immediately
     db.add(ChatMessage(session_id=session_id, user_id=current_user_id, role="user", content=payload.message, model=resolved_model))
 
-    # Generate auto-title before streaming so it's persisted even if client disconnects
     if is_first_message:
         await _generate_title(payload.message, db, session)
         db.refresh(session)
 
     session.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     db.commit()
+
+    system_prompt = current_user.custom_instructions if current_user.custom_instructions else None
 
     async def event_generator():
         full_reply = ""

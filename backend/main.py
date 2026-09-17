@@ -13,10 +13,9 @@ from backend.database import Base, engine
 from backend.routers.auth import router as auth_router
 from backend.routers.chat import router as chat_router
 from backend.routers.sessions import router as sessions_router
-from backend.routers.user import router as user_router
+from backend.routers.users import router as user_router
 
 Base.metadata.create_all(bind=engine)
-app.include_router(user_router) 
 
 app = FastAPI(title="ChatLLM Experiment API")
 
@@ -43,6 +42,7 @@ app.add_middleware(NoCacheMiddleware)
 app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(sessions_router)
+app.include_router(user_router) 
 
 NO_CACHE_HEADERS = {
     "Cache-Control": "no-cache, no-store, must-revalidate",
