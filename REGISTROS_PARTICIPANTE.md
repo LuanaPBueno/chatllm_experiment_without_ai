@@ -29,3 +29,7 @@ Caso utilize este espaço, organize o conteúdo da maneira que preferir.
 ---
 
 Registros
+
+Pro commit 1: 
+- adicionei a coluna custom_instructions no User Model 
+- criei o routers/users.py 

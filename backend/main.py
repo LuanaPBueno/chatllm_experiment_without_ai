@@ -13,9 +13,10 @@ from backend.database import Base, engine
 from backend.routers.auth import router as auth_router
 from backend.routers.chat import router as chat_router
 from backend.routers.sessions import router as sessions_router
-
+from backend.routers.user import router as user_router
 
 Base.metadata.create_all(bind=engine)
+app.include_router(user_router) 
 
 app = FastAPI(title="ChatLLM Experiment API")
 
