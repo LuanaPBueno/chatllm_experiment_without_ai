@@ -78,11 +78,14 @@ async def chat(
     session_id = session.id
     current_user_id = current_user.id
 
+    system_prompt = current_user.custom_instructions if current_user.custom_instructions else None
+
     try:
         reply, model_name = await generate_reply(
             user_message=payload.message,
             history=[item.model_dump() for item in payload.history],
             model=payload.model,
+            system_prompt=system_prompt,
         )
     except OpenRouterConfigError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
@@ -135,6 +138,7 @@ async def chat_stream(
                 user_message=payload.message,
                 history=[item.model_dump() for item in payload.history],
                 model=payload.model,
+                system_prompt=system_prompt,
             ):
                 full_reply += delta
                 yield f"data: {json.dumps({'delta': delta}, ensure_ascii=True)}\n\n"
