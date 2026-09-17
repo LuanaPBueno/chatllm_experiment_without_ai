@@ -4,6 +4,109 @@ function createMessageId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function InstructionsModal({ isOpen, onClose }) {
+  const [instructions, setInstructions] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      setLoading(true);
+      setMessage("");
+      getUserInstructions()
+        .then((data) => {
+          setInstructions(data.custom_instructions || "");
+        })
+        .catch(() => setMessage("Erro ao carregar instruções."))
+        .finally(() => setLoading(false));
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+    try {
+      await updateCustomInstructions(instructions.trim() ? instructions : null);
+      setMessage("Instruções salvas com sucesso!");
+      setTimeout(() => {
+        onClose();
+        setMessage("");
+      }, 1000);
+    } catch (err) {
+      setMessage(err.message || "Erro ao salvar instruções.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={modalOverlayStyle} onClick={onClose}>
+      <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+        <h3 style={{ margin: "0 0 8px 0" }}>Instruções Personalizadas</h3>
+        <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+          O que você gostaria que a IA soubesse sobre você para fornecer respostas melhores?
+        </p>
+
+        <form onSubmit={handleSave}>
+          <textarea
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            placeholder="Ex: Responda sempre em português, seja direto..."
+            rows={6}
+            style={textareaStyle}
+            disabled={loading}
+            autoFocus
+          />
+          {message && (
+            <div style={{ fontSize: "0.85rem", margin: "8px 0", color: message.includes("sucesso") ? "#27ae60" : "#c0392b" }}>
+              {message}
+            </div>
+          )}
+
+          <div style={modalActionsStyle}>
+            <button type="button" onClick={onClose} style={cancelBtnStyle} disabled={loading}>
+              Cancelar
+            </button>
+            <button type="submit" style={saveBtnStyle} disabled={loading}>
+              {loading ? "Salvando..." : "Salvar"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+const modalOverlayStyle = {
+  position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+  background: "rgba(0, 0, 0, 0.4)", display: "flex", alignItems: "center",
+  justifyContent: "center", zIndex: 1000,
+};
+const modalContentStyle = {
+  background: "var(--bg-page)", border: "1px solid var(--border)",
+  padding: "24px", borderRadius: "12px", width: "100%", maxWidth: "480px",
+  boxShadow: "0 4px 24px rgba(0, 0, 0, 0.12)",
+};
+const textareaStyle = {
+  width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid var(--composer-border)",
+  font: "inherit", fontSize: "0.95rem", background: "var(--bg-page)", color: "var(--text)",
+  resize: "vertical", outline: "none",
+};
+const modalActionsStyle = {
+  display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "16px",
+};
+const cancelBtnStyle = {
+  padding: "8px 16px", background: "transparent", border: "1px solid var(--border)",
+  borderRadius: "8px", cursor: "pointer", color: "var(--text)", fontSize: "0.9rem",
+};
+const saveBtnStyle = {
+  padding: "8px 16px", background: "var(--accent)", color: "#fff", border: "none",
+  borderRadius: "8px", cursor: "pointer", fontWeight: "600", fontSize: "0.9rem",
+};
+
 function App() {
   const [token, setToken] = useState(localStorage.getItem("access_token"));
   const [userEmail, setUserEmail] = useState(localStorage.getItem("user_email") || "");
