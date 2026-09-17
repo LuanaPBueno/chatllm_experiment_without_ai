@@ -117,6 +117,7 @@ function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
   const messagesRef = useRef(null);
   const abortControllerRef = useRef(null);
 
@@ -372,6 +373,9 @@ function App() {
           </div>
           <div className="header-right">
             <span className="user-email">{userEmail}</span>
+            <button className="logout-dev" onClick={() => setIsInstructionsOpen(true)} style={{background: 'transparent', border: '1px solid var(--border)', borderRadius: '8px', padding: '4px 14px', fontSize: '0.82rem', color: 'var(--text)', cursor: 'pointer'}}>
+              Instruções
+            </button>
             <button className="logout-btn" onClick={handleLogout}>Sair</button>
           </div>
         </header>
@@ -395,6 +399,10 @@ function App() {
           onStop={onStop}
         />
       </main>
+      <InstructionsModal
+        isOpen={isInstructionsOpen}
+        onClose={() => setIsInstructionsOpen(false)}
+      />
     </div>
   );
 }
