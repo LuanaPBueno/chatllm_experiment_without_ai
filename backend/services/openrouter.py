@@ -20,8 +20,9 @@ _SYSTEM_PROMPT = (
 )
 
 
-def _build_messages(*, user_message: str, history: list[dict]) -> list[dict]:
-    messages: list[dict] = [{"role": "system", "content": _SYSTEM_PROMPT}]
+def _build_messages(*, user_message: str, history: list[dict], system_prompt: str | None = None) -> list[dict]:
+    active_prompt = system_prompt if system_prompt else _SYSTEM_PROMPT
+    messages: list[dict] = [{"role": "system", "content": active_prompt}]
     for item in history:
         role = item.get("role")
         content = item.get("content")
@@ -41,14 +42,20 @@ def _build_headers() -> dict[str, str]:
     }
 
 
-async def generate_reply(*, user_message: str, history: list[dict], model: str | None = None) -> tuple[str, str]:
+async def generate_reply(
+    *, 
+    user_message: str, 
+    history: list[dict], 
+    model: str | None = None, 
+    system_prompt: str | None = None
+) -> tuple[str, str]:
     if not OPENROUTER_API_KEY:
         raise OpenRouterConfigError(
             "OPENROUTER_API_KEY nao definido. Configure em .env ou environment variables."
         )
 
     resolved_model = model or OPENROUTER_MODEL_DEFAULT
-    messages = _build_messages(user_message=user_message, history=history)
+    messages = _build_messages(user_message=user_message, history=history, system_prompt=system_prompt)
 
     payload = {
         "model": resolved_model,
@@ -71,7 +78,13 @@ async def generate_reply(*, user_message: str, history: list[dict], model: str |
     return reply, resolved_model
 
 
-async def stream_reply(*, user_message: str, history: list[dict], model: str | None = None):
+async def stream_reply(
+    *, 
+    user_message: str, 
+    history: list[dict], 
+    model: str | None = None, 
+    system_prompt: str | None = None
+):
     if not OPENROUTER_API_KEY:
         raise OpenRouterConfigError(
             "OPENROUTER_API_KEY nao definido. Configure em .env ou environment variables."
@@ -80,7 +93,7 @@ async def stream_reply(*, user_message: str, history: list[dict], model: str | N
     resolved_model = model or OPENROUTER_MODEL_DEFAULT
     payload = {
         "model": resolved_model,
-        "messages": _build_messages(user_message=user_message, history=history),
+        "messages": _build_messages(user_message=user_message, history=history, system_prompt=system_prompt),
         "stream": True,
     }
 

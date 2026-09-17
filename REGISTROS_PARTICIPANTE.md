@@ -33,3 +33,6 @@ Registros
 Pro commit 1: 
 - adicionei a coluna custom_instructions no User Model 
 - criei o routers/users.py 
+
+Commit do front: 
+Adicionei getUserInstructions() e updateCustomInstructions(custom_instructions)  no api.js para o frontEnd. 
